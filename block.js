@@ -1,61 +1,72 @@
 class Block {
 
-    constructor (size, color, pos, outline=150) {
+    constructor (size, color, pos, vel={ x: 0, y: 0 }, outline=150) {
         this.size = size;
         this.color = color;
         this.outline = outline;
         this.pos = pos;
         this.prevPos = this.pos;
-        this.vel = { x: 0, y: 0 };
+        this.vel = vel;
     }
 
     // returns 0 if a left-right collision, 1 if a top-bottom collision, and -1 if not a collision
     collide (square) {
-        
         // calculate sides
         
-        left   = this.pos.x - this.size/2;
-        right  = this.pos.x + this.size/2;
-        top    = this.pos.y - this.size/2;
-        bottom = this.pos.y + this.size/2;
+        let left   = this.pos.x - this.size/2;
+        let right  = this.pos.x + this.size/2;
+        let top    = this.pos.y - this.size/2;
+        let bottom = this.pos.y + this.size/2;
+
+        let squareLeft   = square.pos.x - square.size/2;
+        let squareRight  = square.pos.x + square.size/2;
+        let squareTop    = square.pos.y - square.size/2;
+        let squareBottom = square.pos.y + square.size/2;
+
+        if (!(left >= squareLeft && left <= squareRight && top >= squareTop && top <= squareBottom)) 
+            return -1;
         
-        oldLeft   = this.prevPos.x - this.size/2;
-        oldRight  = this.prevPos.x + this.size/2;
-        oldTop    = this.prevPos.y - this.size/2;
-        oldBottom = this.prevPos.y + this.size/2;
+        // active edges: [left/right, top/bottom]
+        let edges = [this.vel.x > 0, this.vel.y > 0];
+        let squareEdges = [!edges[0], !edges[1]];
 
-        squareLeft   = square.pos.x - square.size/2;
-        squareRight  = square.pos.x + square.size/2;
-        squareTop    = square.pos.y - square.size/2;
-        squareBottom = square.pos.y + square.size/2;
+        // distances
+        let dX = abs((squareEdges[0] ? squareRight : squareLeft) - (edges[0] ? right : left));
+        let dY = abs((squareEdges[1] ? squareBottom : squareTop) - (edges[1] ? bottom : top));
 
-        // collisions
-        isLeft = oldRight < squareLeft && right >= squareLeft;
-        isRight = oldLeft >= squareRight && left < squareRight;
-        isTop = oldBottom < squareTop && bottom >= squareTop;
-        isBottom = oldTop >= squareBottom && top < squareBottom;
+        // time for distances
+        let tX = dX / this.vel.x;
+        let tY = dY / this.vel.y;
 
-        if (isLeft || isRight) return 0;
-        else if (isTop || isBottom) return 1;
-        else return -1; 
+        // greator time is colliding longer
+        return (tX > tY) ? 0 : 1;
     }
 
-    updatePos (blocks, gravity) {
-        this.pos.x += this.vel.x;
-        this.pos.y += this.vel.y;
-        this.vel.y += gravity;
+    updatePos (reactives, grav) {
+        this.prevPos = this.pos;
 
         // collision detection
-        for (b of blocks) {
-            switch (this.collide(b)) {
+        for (let react of reactives) {
+            switch (this.collide(react)) {
                 case 0:  // left-right collision
                     this.vel.x = -this.vel.x;
                     break;
                 case 1:  // top-bottom collision
-                    this.vel.y = -this.vel.y;
+                    this.vel.y = -this.vel.y * react.elasticity;
                     break;
             }
         }
+
+        // left and right extremities
+        if (this.pos.x - this.size/2 < 0 || this.pos.x + this.size/2 > width)
+            this.vel.x = -this.vel.x;
+
+        this.pos.x += this.vel.x;
+        this.pos.y += this.vel.y;
+        this.vel.y += grav;
+
+        // past bottom
+        return (this.pos.y - this.size/2 > height) ? true : false;
     }
 
     draw () {

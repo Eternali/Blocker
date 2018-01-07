@@ -6,13 +6,12 @@ class Square {
         this.size = size;
         this.outside = 0;  // border color
         this.inside = 100;  // inner color
-        this.angle = 0;
+        this.elasticity = 0.25;  // when a block collides, this is the bounce-back force.
     }
 
     draw () {
         push();
         translate(this.pos.x, this.pos.y);
-        rotate(this.angle);
         stroke(this.outside);
         fill(this.inside);
         rect(0, 0, this.size, this.size);
