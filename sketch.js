@@ -15,7 +15,7 @@ function setup () {
     enemySizeMax = 60;
     enemySpeedMax = 6;
     count = 0;
-    freq = 30;
+    freq = 120;
     gravity = 15 / fps;  // keep physics relative to update frequency
 
     // initialize game environment

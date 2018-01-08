@@ -23,7 +23,9 @@ class Block {
         let squareTop    = square.pos.y - square.size/2;
         let squareBottom = square.pos.y + square.size/2;
 
-        if (!(left >= squareLeft && left <= squareRight && top >= squareTop && top <= squareBottom)) 
+        // are they even colliding?
+        if (!(((right >= squareLeft && right <= squareRight) || (left >= squareLeft && left <= squareRight)) && 
+              ((bottom >= squareTop && bottom <= squareBottom) || (top >= squareTop && top <= squareBottom)))) 
             return -1;
         
         // active edges: [left/right, top/bottom]
@@ -52,7 +54,7 @@ class Block {
                     this.vel.x = -this.vel.x;
                     break;
                 case 1:  // top-bottom collision
-                    this.vel.y = -this.vel.y * react.elasticity;
+                    this.vel.y = (this.vel.y > 0) ? -react.elasticity : react.elasticity;
                     break;
             }
         }
